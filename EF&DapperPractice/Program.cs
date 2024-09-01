@@ -1,3 +1,7 @@
+using EF_DapperPractice.Data;
+using EF_DapperPractice.Repository;
+using Microsoft.EntityFrameworkCore;
+
 namespace EF_DapperPractice {
     public class Program {
         public static void Main(string[] args) {
@@ -5,6 +9,15 @@ namespace EF_DapperPractice {
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+
+            //Database
+            builder.Services.AddDbContext<ApplicationDbContext>(options => {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            });
+            builder.Services.AddScoped<ICompanyRepositoryAsync, CompanyRepositoryEF>();
+            builder.Services.AddScoped<ICompanyRepository, CompanyRepositoryDapper>();
+
 
             var app = builder.Build();
 
