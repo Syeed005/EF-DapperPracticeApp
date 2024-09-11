@@ -18,6 +18,7 @@ namespace EF_DapperPractice {
             builder.Services.AddScoped<ICompanyRepositoryAsync, CompanyRepositoryEF>();
             builder.Services.AddScoped<ICompanyRepository, CompanyRepositoryContrib>();
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepositoryDapper>();
+            builder.Services.AddScoped<IBonusRepository, BonusRepository>();
 
 
             var app = builder.Build();
