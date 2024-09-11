@@ -27,8 +27,11 @@ namespace EF_DapperPractice.Controllers
         
         public async Task<IActionResult> Index()
         {
-            //return View(_companyRepo.GetAll());
-            return View(_empRepo.GetAll());
+            List<Employee> employees = _empRepo.GetAll();
+            foreach (Employee employee in employees) {
+                employee.Company = _companyRepo.Get(employee.CompanyId);
+            }
+            return View(employees);
         }
         
         public IActionResult Create()
