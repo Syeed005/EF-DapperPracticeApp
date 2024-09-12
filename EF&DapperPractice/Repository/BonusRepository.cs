@@ -1,4 +1,6 @@
-﻿using Dapper;
+﻿//using AspNetCore;
+//using AspNetCore;
+using Dapper;
 using EF_DapperPractice.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -10,6 +12,43 @@ namespace EF_DapperPractice.Repository {
         public BonusRepository(IConfiguration configuration)
         {
             _dbConnection = new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
+        }
+
+        public void CreateTestCompany(Company company) {
+            string sql = "INSERT INTO Companies (Name, Address, City, State, PostalCode) VALUES(@Name, @Address, @City, @State, @PostalCode) \r\nSELECT CAST(SCOPE_IDENTITY() as int);";
+            company.CompanyId = _dbConnection.Query<int>(sql, company).Single();
+
+            string sql1 = "INSERT INTO Employees (Name, Title, Email, Phone, CompanyId) VALUES(@Name, @Title, @Email, @Phone, @CompanyId) \r\nSELECT CAST(SCOPE_IDENTITY() as int);";
+            foreach (Employee employee in company.Employees) {
+                employee.CompanyId = company.CompanyId;
+                _dbConnection.Query<int>(sql1, employee).Single();
+            }
+            
+            
+            //company.CompanyId = _dbConnection.Execute(sql, new {company.Name, company.Address, company.City, company.State, company.PostalCode});
+            
+        }
+
+        public List<Company> FilterCompanyByName(string name) {
+            string sql = "select * from [DapperTraining].[dbo].[Companies] where Name like '%'+@Name+'%'";
+            return  _dbConnection.Query<Company>(sql, new {Name = name}).ToList();          
+        }
+
+        public List<Company> GetAllCompanyWithEmployees()
+        {
+            string sql = "select C.*, E.* from [DapperTraining].[dbo].[Companies] as C \r\n inner join Employees as E on E.CompanyId = C.CompanyId";
+            Dictionary<int, Company> uniqueCompany = new Dictionary<int, Company>();
+            var company = _dbConnection.Query<Company, Employee, Company>(sql, (c, e) =>
+            {
+                if (!uniqueCompany.TryGetValue(c.CompanyId, out var currentCompany))
+                {
+                    currentCompany = c;
+                    uniqueCompany.Add(currentCompany.CompanyId, currentCompany);
+                }
+                currentCompany.Employees.Add(e);
+                return currentCompany;
+            }, splitOn: "EmployeeId");
+            return company.Distinct().ToList();
         }
 
         public List<Employee> GetAllEmployeedWithCompany(int id)
@@ -25,6 +64,30 @@ namespace EF_DapperPractice.Repository {
                 return e;
             }, new { id},splitOn: "CompanyId");
             return employees.ToList();
+        }
+
+        public Company GetCompanyWithEmployees(int id)
+        {
+            //var p = new
+            //{
+            //    CompanyId = id
+            //};
+            string sql = "select * from [DapperTraining].[dbo].[Companies] where CompanyId = @CompanyId;" +
+                "select * from [DapperTraining].[dbo].[Employees] where CompanyId = @CompanyId;";
+
+            Company? company;
+            using (var lists = _dbConnection.QueryMultiple(sql, new {CompanyId = id}))
+            {
+                company = lists.Read<Company>().ToList().FirstOrDefault();
+                company.Employees = lists.Read<Employee>().ToList();
+            }
+
+            return company;
+        }
+
+        public void RemoveRange(int[] companies) {
+            string sql = "Delete from [DapperTraining].[dbo].[Companies] where CompanyId in @Companies";
+            _dbConnection.Query(sql, new { Companies = companies });
         }
     }
 }

@@ -8,16 +8,19 @@ using Microsoft.EntityFrameworkCore;
 using EF_DapperPractice.Data;
 using EF_DapperPractice.Models;
 using EF_DapperPractice.Repository;
+using System.Runtime.CompilerServices;
 
 namespace EF_DapperPractice.Controllers
 {
     public class CompaniesController : Controller
     {
         private readonly ICompanyRepository _companyRepo;
+        private readonly IBonusRepository _bonusRepo;
 
-        public CompaniesController(ICompanyRepository companyRepo)
+        public CompaniesController(ICompanyRepository companyRepo, IBonusRepository bonusRepo)
         {
             _companyRepo = companyRepo;
+            _bonusRepo = bonusRepo;
         }
 
         // GET: Companies
@@ -35,7 +38,8 @@ namespace EF_DapperPractice.Controllers
                 return NotFound();
             }
 
-            var company = _companyRepo.Get(id.GetValueOrDefault());
+            //var company = _companyRepo.Get(id.GetValueOrDefault());
+            var company = _bonusRepo.GetCompanyWithEmployees(id.GetValueOrDefault());
             if (company == null)
             {
                 return NotFound();
