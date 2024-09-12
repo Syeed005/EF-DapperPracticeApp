@@ -15,19 +15,20 @@ namespace EF_DapperPractice.Controllers
     public class CompaniesController : Controller
     {
         private readonly ICompanyRepository _companyRepo;
+        private readonly ICompanyRepositoryAsync _companyRepoAsync;
         private readonly IBonusRepository _bonusRepo;
 
-        public CompaniesController(ICompanyRepository companyRepo, IBonusRepository bonusRepo)
-        {
+        public CompaniesController(ICompanyRepository companyRepo, IBonusRepository bonusRepo, ICompanyRepositoryAsync companyRepoAsync) {
             _companyRepo = companyRepo;
             _bonusRepo = bonusRepo;
+            _companyRepoAsync = companyRepoAsync;
         }
 
         // GET: Companies
         public async Task<IActionResult> Index()
         {
             //return View(await _companyRepo.GetAllAsync());
-            return View(_companyRepo.GetAll());
+            return View(await _companyRepoAsync.GetAllAsync());
         }
 
         // GET: Companies/Details/5
@@ -39,7 +40,8 @@ namespace EF_DapperPractice.Controllers
             }
 
             //var company = _companyRepo.Get(id.GetValueOrDefault());
-            var company = _bonusRepo.GetCompanyWithEmployees(id.GetValueOrDefault());
+            //var company = _bonusRepo.GetCompanyWithEmployees(id.GetValueOrDefault());
+            var company = await _bonusRepo.GetCompanyWithEmployeesAsync(id.GetValueOrDefault());
             if (company == null)
             {
                 return NotFound();
@@ -63,7 +65,8 @@ namespace EF_DapperPractice.Controllers
         {
             if (ModelState.IsValid)
             {
-                _companyRepo.Create(company);
+                //_companyRepo.Create(company);
+                await _companyRepoAsync.CreateAsync(company);
                 return RedirectToAction(nameof(Index));
             }
             return View(company);
@@ -77,7 +80,7 @@ namespace EF_DapperPractice.Controllers
                 return NotFound();
             }
 
-            var company = _companyRepo.Get(id.GetValueOrDefault());
+            var company = await _companyRepoAsync.GetAsync(id.GetValueOrDefault());
             if (company == null)
             {
                 return NotFound();
@@ -99,7 +102,7 @@ namespace EF_DapperPractice.Controllers
 
             if (ModelState.IsValid)
             {
-                _companyRepo.Update(company);
+                await _companyRepoAsync.UpdateAsync(company);
             }
             return RedirectToAction(nameof(Index));
         }
@@ -112,12 +115,12 @@ namespace EF_DapperPractice.Controllers
                 return NotFound();
             }
 
-            var company = _companyRepo.Get(id.GetValueOrDefault());
+            var company = await _companyRepoAsync.GetAsync(id.GetValueOrDefault());
             if (company == null)
             {
                 return NotFound();
             } else {
-                _companyRepo.Remove(company);
+                await _companyRepoAsync.RemoveAsync(company);
             }
 
             return RedirectToAction(nameof(Index));

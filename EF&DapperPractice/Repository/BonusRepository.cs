@@ -115,6 +115,23 @@ namespace EF_DapperPractice.Repository {
             return company;
         }
 
+        public async Task<Company> GetCompanyWithEmployeesAsync(int id) {
+            //var p = new
+            //{
+            //    CompanyId = id
+            //};
+            string sql = "select * from [DapperTraining].[dbo].[Companies] where CompanyId = @CompanyId;" +
+                "select * from [DapperTraining].[dbo].[Employees] where CompanyId = @CompanyId;";
+
+            Company company;
+            using (var lists = await _dbConnection.QueryMultipleAsync(sql, new { CompanyId = id })) {
+                company = lists.Read<Company>().ToList().FirstOrDefault();
+                company.Employees = lists.Read<Employee>().ToList();
+            }
+
+            return company;
+        }
+
         public void RemoveRange(int[] companies) {
             string sql = "Delete from [DapperTraining].[dbo].[Companies] where CompanyId in @Companies";
             _dbConnection.Query(sql, new { Companies = companies });

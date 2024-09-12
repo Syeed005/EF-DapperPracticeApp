@@ -15,8 +15,9 @@ namespace EF_DapperPractice {
             builder.Services.AddDbContext<ApplicationDbContext>(options => {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
-            builder.Services.AddScoped<ICompanyRepositoryAsync, CompanyRepositoryEF>();
+            
             builder.Services.AddScoped<ICompanyRepository, CompanyRepositoryContrib>();
+            builder.Services.AddScoped<ICompanyRepositoryAsync, CompanyRepositoryDapperAsync>();
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepositoryDapper>();
             builder.Services.AddScoped<IBonusRepository, BonusRepository>();
 
