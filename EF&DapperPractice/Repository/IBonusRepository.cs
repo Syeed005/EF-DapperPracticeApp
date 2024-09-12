@@ -6,6 +6,7 @@ namespace EF_DapperPractice.Repository {
         Company GetCompanyWithEmployees(int id);
         List<Company> GetAllCompanyWithEmployees();
         void CreateTestCompany(Company company);
+        void CreateTestCompanyWithTransaction(Company company);
         void RemoveRange(int[] data);
         List<Company> FilterCompanyByName(string name);
     }

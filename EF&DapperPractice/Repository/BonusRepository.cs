@@ -4,6 +4,7 @@ using Dapper;
 using EF_DapperPractice.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Transactions;
 
 namespace EF_DapperPractice.Repository {
     public class BonusRepository : IBonusRepository {
@@ -33,6 +34,29 @@ namespace EF_DapperPractice.Repository {
 
             //company.CompanyId = _dbConnection.Execute(sql, new {company.Name, company.Address, company.City, company.State, company.PostalCode});
 
+        }
+
+        public void CreateTestCompanyWithTransaction(Company company) {
+
+            using (var transaction = new TransactionScope()) {
+                try {
+                    string sql = "INSERT INTO Companies (Name, Address, City, State, PostalCode) VALUES(@Name, @Address, @City, @State, @PostalCode) \r\nSELECT CAST(SCOPE_IDENTITY() as int);";
+                    company.CompanyId = _dbConnection.Query<int>(sql, company).Single();
+
+                    string sqlEmp = "INSERT INTO Employees (Name, Title, Email, Phone, CompanyId) VALUES(@Name, @Title, @Email, @Phone, @CompanyId) \r\nSELECT CAST(SCOPE_IDENTITY() as int);";
+
+                    company.Employees.Select(x => {
+                        x.CompanyId = company.CompanyId;
+                        return x;
+                    }).ToList();
+
+                    _dbConnection.Execute(sqlEmp, company.Employees);
+
+                    transaction.Complete();
+                } catch (Exception ex) {
+                    Console.WriteLine(ex.Message);
+                }
+            }            
         }
 
         public List<Company> FilterCompanyByName(string name) {

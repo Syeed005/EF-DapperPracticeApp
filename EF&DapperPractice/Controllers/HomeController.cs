@@ -42,7 +42,7 @@ namespace EF_DapperPractice.Controllers {
                 Title = "Test Manager 2"
             });
 
-            _bonusRepo.CreateTestCompany(company);
+            _bonusRepo.CreateTestCompanyWithTransaction(company);
             return RedirectToAction(nameof(Index));
         }
 
