@@ -18,15 +18,21 @@ namespace EF_DapperPractice.Repository {
             string sql = "INSERT INTO Companies (Name, Address, City, State, PostalCode) VALUES(@Name, @Address, @City, @State, @PostalCode) \r\nSELECT CAST(SCOPE_IDENTITY() as int);";
             company.CompanyId = _dbConnection.Query<int>(sql, company).Single();
 
-            string sql1 = "INSERT INTO Employees (Name, Title, Email, Phone, CompanyId) VALUES(@Name, @Title, @Email, @Phone, @CompanyId) \r\nSELECT CAST(SCOPE_IDENTITY() as int);";
-            foreach (Employee employee in company.Employees) {
-                employee.CompanyId = company.CompanyId;
-                _dbConnection.Query<int>(sql1, employee).Single();
-            }
-            
-            
+            string sqlEmp = "INSERT INTO Employees (Name, Title, Email, Phone, CompanyId) VALUES(@Name, @Title, @Email, @Phone, @CompanyId) \r\nSELECT CAST(SCOPE_IDENTITY() as int);";
+            //foreach (Employee employee in company.Employees) {
+            //    employee.CompanyId = company.CompanyId;
+            //    _dbConnection.Query<int>(sqlEmp, employee).Single();
+            //}
+
+            company.Employees.Select(x => {
+                x.CompanyId = company.CompanyId;
+                return x;
+                }).ToList();
+
+            _dbConnection.Execute(sqlEmp, company.Employees);
+
             //company.CompanyId = _dbConnection.Execute(sql, new {company.Name, company.Address, company.City, company.State, company.PostalCode});
-            
+
         }
 
         public List<Company> FilterCompanyByName(string name) {
@@ -75,7 +81,7 @@ namespace EF_DapperPractice.Repository {
             string sql = "select * from [DapperTraining].[dbo].[Companies] where CompanyId = @CompanyId;" +
                 "select * from [DapperTraining].[dbo].[Employees] where CompanyId = @CompanyId;";
 
-            Company? company;
+            Company company;
             using (var lists = _dbConnection.QueryMultiple(sql, new {CompanyId = id}))
             {
                 company = lists.Read<Company>().ToList().FirstOrDefault();
